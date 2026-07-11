@@ -17,3 +17,6 @@ Desktop.ini
 *.swp
 *.tmp
 RELEASE_NOTES*
+
+# Release staging
+dist/

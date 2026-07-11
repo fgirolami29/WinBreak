@@ -4,6 +4,24 @@ Tutte le modifiche rilevanti di WinBreak sono documentate in questo file.
 
 Il formato segue i principi di [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/) e il progetto usa il versionamento semantico.
 
+## [0.1.2] - 2026-07-11
+
+### Corretto
+
+- Delegato l'avvio di `setup.exe` alla shell desktop di Windows, evitando che il controllo iniziale di compatibilità venga eseguito direttamente dal processo Administrator di WinBreak.
+- Corretto il pacchetto di release: lo ZIP viene creato da una allowlist e non contiene `.gitignore`, `.DS_Store`, `__MACOSX`, test o altri file di sviluppo.
+- Aggiornati badge, documentazione e riferimenti al pacchetto stabile.
+
+## [0.1.1] - 2026-07-11
+
+### Aggiunto
+
+- Completato il set di bypass Registry per TPM, Secure Boot, RAM e CPU.
+- Aggiunto `AllowUpgradesWithUnsupportedTPMOrCPU` in `MoSetup`.
+- Aggiunto `HwReqChkVars` compatibile con il metodo usato da Rufus.
+- Aggiunti backup e rimozione verificata delle cache AppCompat.
+- Migliorate verifica, backup e diagnostica delle modifiche Registry.
+
 ## [0.1.0] - 2026-07-11
 
 ### Aggiunto
