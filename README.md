@@ -1,59 +1,36 @@
 # WinBreak
 
-<div style="display: flex; flex-direction: row">
-<p align="left" style="width: 70%">
-        <a href="https://github.com/fgirolami29/WinBreak">
-            <img alt="WinBreak" src="https://img.shields.io/badge/WinBreak-0.1.2-0078D4?style=for-the-badge&logo=windows11&logoColor=white" />
-        </a>
-        <a href="https://github.com/fgirolami29/WinBreak/releases/latest">
-            <img alt="Latest release" src="https://img.shields.io/github/v/release/fgirolami29/WinBreak?style=for-the-badge&logo=github&logoColor=white">
-        </a>
-        <a href="https://github.com/fgirolami29/WinBreak/releases">
-            <img alt="Release downloads" src="https://img.shields.io/github/downloads/fgirolami29/WinBreak/total?style=for-the-badge&logo=github&logoColor=white">
-        </a>
-        <a href="https://github.com/fgirolami29/WinBreak/commits/main">
-            <img alt="Last commit" src="https://img.shields.io/github/last-commit/fgirolami29/WinBreak?style=for-the-badge&logo=github&logoColor=white" />
-        </a>
-        <a href="https://github.com/fgirolami29/WinBreak/stargazers">
-            <img alt="GitHub stars" src="https://img.shields.io/github/stars/fgirolami29/WinBreak?style=for-the-badge&logo=github&logoColor=white" />
-        </a>
-        <a href="https://github.com/fgirolami29/WinBreak/network/members">
-            <img alt="GitHub forks" src="https://img.shields.io/github/forks/fgirolami29/WinBreak?style=for-the-badge&logo=github&logoColor=white" />
-        </a>
-        <a href="https://github.com/fgirolami29/WinBreak/issues">
-            <img alt="GitHub issues" src="https://img.shields.io/github/issues/fgirolami29/WinBreak?style=for-the-badge&logo=github&logoColor=white" />
-        </a>
-        <a href="https://github.com/fgirolami29">
-            <img alt="fgirolami29" src="https://img.shields.io/badge/Author-Federico_Girolami-181717?style=for-the-badge&logo=github&logoColor=white" />
-        </a>
-        <a href="https://github.com/CodeCornTech">
-            <img alt="CodeCorn Technology" src="https://img.shields.io/badge/CodeCorn-Technology-C1A269?style=for-the-badge&logo=coffeescript&logoColor=white" />
-        </a>
-        <a href="https://github.com/PytorchiaOrg">
-            <img alt="PyTorchia Legion" src="https://img.shields.io/badge/PyTorchia-Legion-%2300BFFF?style=for-the-badge&logo=docker&logoColor=white" />
-        </a>
-    </p>
-    <div style="width: 30%;display:flex;flex-direction:column;justify-content:center;align-items:end;">
-        <img alt="CodeCornTechnology™" src="https://i.postimg.cc/TP3ttFM8/CODECORN-trasp-white-ORI.png" width="250px" />
-    </div>
+<img
+    align="right"
+    alt="CodeCornTechnology™"
+    src="https://i.postimg.cc/TP3ttFM8/CODECORN-trasp-white-ORI.png"
+    width="250"
+/>
+
+<div align="left">
+<a href="https://github.com/fgirolami29/WinBreak"><img alt="WinBreak" src="https://img.shields.io/badge/WinBreak-0.1.2-0078D4?style=for-the-badge&logo=windows11&logoColor=white"></a>
+<a href="https://github.com/fgirolami29/WinBreak/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/fgirolami29/WinBreak?style=for-the-badge&logo=github&logoColor=white"></a>
+<a href="https://github.com/fgirolami29/WinBreak/releases"><img alt="Release downloads" src="https://img.shields.io/github/downloads/fgirolami29/WinBreak/total?style=for-the-badge&logo=github&logoColor=white"></a>
+<a href="https://github.com/fgirolami29/WinBreak/commits/main"><img alt="Last commit" src="https://img.shields.io/github/last-commit/fgirolami29/WinBreak?style=for-the-badge&logo=github&logoColor=white"></a>
+<a href="https://github.com/fgirolami29/WinBreak/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/fgirolami29/WinBreak?style=for-the-badge&logo=github&logoColor=white"></a>
+<a href="https://github.com/fgirolami29/WinBreak/network/members"><img alt="GitHub forks" src="https://img.shields.io/github/forks/fgirolami29/WinBreak?style=for-the-badge&logo=github&logoColor=white"></a>
+<a href="https://github.com/fgirolami29/WinBreak/issues"><img alt="GitHub issues" src="https://img.shields.io/github/issues/fgirolami29/WinBreak?style=for-the-badge&logo=github&logoColor=white"></a>
+<a href="https://github.com/fgirolami29"><img alt="fgirolami29" src="https://img.shields.io/badge/Author-Federico_Girolami-181717?style=for-the-badge&logo=github&logoColor=white"></a>
+<a href="https://github.com/CodeCornTech"><img alt="CodeCorn Technology" src="https://img.shields.io/badge/CodeCorn-Technology-C1A269?style=for-the-badge&logo=coffeescript&logoColor=white"></a>
+<a href="https://github.com/PytorchiaOrg"><img alt="PyTorchia Legion" src="https://img.shields.io/badge/PyTorchia-Legion-%2300BFFF?style=for-the-badge&logo=docker&logoColor=white"></a>
 </div>
+
+<br clear="right">
 
 **Windows 11 Requirements Patcher**
 
-<div style="display: flex; flex-direction: row">
-    <p align="left" style="width: 70%">
-        <a href="https://github.com/fgirolami29/WinBreak">
-            <img alt="PowerShell 5.1" src="https://img.shields.io/badge/PowerShell-5.1-5391FE?style=for-the-badge&logo=powershell&logoColor=white" />
-        </a>
-        <a href="https://www.microsoft.com/windows/windows-11">
-            <img alt="Windows 11" src="https://img.shields.io/badge/Windows-11-0078D4?style=for-the-badge&logo=windows11&logoColor=white" />
-        </a>
-        <a href="https://github.com/pester/Pester">
-            <img alt="Tested with Pester" src="https://img.shields.io/badge/Tested_with-Pester-5C2D91?style=for-the-badge&logo=powershell&logoColor=white" />
-        </a>
-    </p>
-
+<div align="left">
+<a href="https://github.com/fgirolami29/WinBreak"><img alt="PowerShell 5.1" src="https://img.shields.io/badge/PowerShell-5.1-5391FE?style=for-the-badge&logo=powershell&logoColor=white"></a>
+<a href="https://www.microsoft.com/windows/windows-11"><img alt="Windows 11" src="https://img.shields.io/badge/Windows-11-0078D4?style=for-the-badge&logo=windows11&logoColor=white"></a>
+<a href="https://github.com/pester/Pester"><img alt="Tested with Pester" src="https://img.shields.io/badge/Tested_with-Pester-5C2D91?style=for-the-badge&logo=powershell&logoColor=white"></a>
 </div>
+
+---
 
 WinBreak è uno script interattivo per Windows 11 e PowerShell 5.1 che prepara una copia locale di un supporto di installazione Windows 11 destinata a sistemi con requisiti hardware non supportati.
 
