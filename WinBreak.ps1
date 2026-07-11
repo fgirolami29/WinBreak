@@ -12,7 +12,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 Set-Variable -Name WinBreakName -Value 'WinBreak' -Option Constant -Scope Script
-Set-Variable -Name WinBreakVersion -Value '0.1.0' -Option Constant -Scope Script
+Set-Variable -Name WinBreakVersion -Value '0.1.1' -Option Constant -Scope Script
 Set-Variable -Name WinBreakDescription -Value 'Windows 11 Requirements Patcher' -Option Constant -Scope Script
 Set-Variable -Name WinBreakAuthor -Value 'Federico Girolami / CodeCorn Technology' -Option Constant -Scope Script
 Set-Variable -Name WinBreakIsoNamePattern -Value '(?i)^win(?:dows)?[\s._-]*11.*\.iso$' -Option Constant -Scope Script
@@ -992,16 +992,77 @@ function Get-WinBreakRegistryDefinitions {
             RegPath      = 'HKLM\SYSTEM\Setup\LabConfig'
             ProviderPath = 'Registry::HKEY_LOCAL_MACHINE\SYSTEM\Setup\LabConfig'
             ValueName    = 'BypassTPMCheck'
+            ValueType    = 'REG_DWORD'
+            ProviderKind = 'DWord'
+            DesiredValue = 1
         },
         [pscustomobject]@{
             RegPath      = 'HKLM\SYSTEM\Setup\LabConfig'
             ProviderPath = 'Registry::HKEY_LOCAL_MACHINE\SYSTEM\Setup\LabConfig'
             ValueName    = 'BypassSecureBootCheck'
+            ValueType    = 'REG_DWORD'
+            ProviderKind = 'DWord'
+            DesiredValue = 1
+        },
+        [pscustomobject]@{
+            RegPath      = 'HKLM\SYSTEM\Setup\LabConfig'
+            ProviderPath = 'Registry::HKEY_LOCAL_MACHINE\SYSTEM\Setup\LabConfig'
+            ValueName    = 'BypassRAMCheck'
+            ValueType    = 'REG_DWORD'
+            ProviderKind = 'DWord'
+            DesiredValue = 1
+        },
+        [pscustomobject]@{
+            RegPath      = 'HKLM\SYSTEM\Setup\LabConfig'
+            ProviderPath = 'Registry::HKEY_LOCAL_MACHINE\SYSTEM\Setup\LabConfig'
+            ValueName    = 'BypassCPUCheck'
+            ValueType    = 'REG_DWORD'
+            ProviderKind = 'DWord'
+            DesiredValue = 1
+        },
+        [pscustomobject]@{
+            RegPath      = 'HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\HwReqChk'
+            ProviderPath = 'Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\HwReqChk'
+            ValueName    = 'HwReqChkVars'
+            ValueType    = 'REG_MULTI_SZ'
+            ProviderKind = 'MultiString'
+            DesiredValue = [string[]]@(
+                'SQ_SecureBootCapable=TRUE',
+                'SQ_SecureBootEnabled=TRUE',
+                'SQ_TpmVersion=2',
+                'SQ_RamMB=8192'
+            )
         },
         [pscustomobject]@{
             RegPath      = 'HKLM\SYSTEM\Setup\MoSetup'
             ProviderPath = 'Registry::HKEY_LOCAL_MACHINE\SYSTEM\Setup\MoSetup'
             ValueName    = 'AllowUpgradesWithUnsupportedTPMOrCPU'
+            ValueType    = 'REG_DWORD'
+            ProviderKind = 'DWord'
+            DesiredValue = 1
+        }
+    )
+}
+
+function Get-WinBreakRegistryDeleteDefinitions {
+    [CmdletBinding()]
+    param()
+
+    return @(
+        [pscustomobject]@{
+            RegPath      = 'HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\CompatMarkers'
+            ProviderPath = 'Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\CompatMarkers'
+            BackupName   = 'CompatMarkers.reg'
+        },
+        [pscustomobject]@{
+            RegPath      = 'HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Shared'
+            ProviderPath = 'Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Shared'
+            BackupName   = 'Shared.reg'
+        },
+        [pscustomobject]@{
+            RegPath      = 'HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\TargetVersionUpgradeExperienceIndicators'
+            ProviderPath = 'Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\TargetVersionUpgradeExperienceIndicators'
+            BackupName   = 'TargetVersionUpgradeExperienceIndicators.reg'
         }
     )
 }
@@ -1056,7 +1117,16 @@ function Backup-WinBreakRegistryState {
     foreach ($definition in $Definitions) {
         $state = Get-WinBreakRegistryState -Definition $definition
         [void]$states.Add($state)
-        Write-WinBreakLog -Message ('Stato Registry: {0}\{1}; chiave={2}; valore={3}; precedente={4}; tipo={5}' -f $state.RegPath, $state.ValueName, $state.KeyExisted, $state.ValueExisted, $state.PreviousValue, $state.PreviousKind) -Level DEBUG
+        $previousDisplay = if ($state.PreviousValue -is [array]) {
+            @($state.PreviousValue) -join ' | '
+        }
+        elseif ($null -eq $state.PreviousValue) {
+            '<null>'
+        }
+        else {
+            [string]$state.PreviousValue
+        }
+        Write-WinBreakLog -Message ('Stato Registry: {0}\{1}; chiave={2}; valore={3}; precedente={4}; tipo={5}' -f $state.RegPath, $state.ValueName, $state.KeyExisted, $state.ValueExisted, $previousDisplay, $state.PreviousKind) -Level DEBUG
     }
 
     if (-not (Test-Path -LiteralPath $BackupRoot -PathType Container)) {
@@ -1064,7 +1134,7 @@ function Backup-WinBreakRegistryState {
     }
     $backupName = 'registry-{0}-{1}.json' -f (Get-Date -Format 'yyyyMMdd-HHmmss-fff'), ([Guid]::NewGuid().ToString('N').Substring(0, 8))
     $backupPath = Join-Path -Path $BackupRoot -ChildPath $backupName
-    @($states.ToArray()) | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $backupPath -Encoding UTF8 -NoNewline
+    @($states.ToArray()) | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $backupPath -Encoding UTF8 -NoNewline
     if (-not (Test-Path -LiteralPath $backupPath -PathType Leaf)) {
         throw 'Creazione del backup Registry non riuscita.'
     }
@@ -1073,6 +1143,62 @@ function Backup-WinBreakRegistryState {
     return [pscustomobject]@{
         Path   = $backupPath
         States = $states.ToArray()
+    }
+}
+
+function Backup-WinBreakRegistryKeys {
+    [CmdletBinding()]
+    param(
+        [string]$BackupRoot = $script:WinBreakBackupRoot,
+
+        [object[]]$Definitions = (Get-WinBreakRegistryDeleteDefinitions)
+    )
+
+    if (-not (Test-Path -LiteralPath $BackupRoot -PathType Container)) {
+        New-Item -ItemType Directory -Path $BackupRoot -Force | Out-Null
+    }
+
+    $folderName = 'registry-keys-{0}-{1}' -f (Get-Date -Format 'yyyyMMdd-HHmmss-fff'), ([Guid]::NewGuid().ToString('N').Substring(0, 8))
+    $backupDirectory = Join-Path -Path $BackupRoot -ChildPath $folderName
+    New-Item -ItemType Directory -Path $backupDirectory -Force -ErrorAction Stop | Out-Null
+
+    $exports = New-Object System.Collections.Generic.List[object]
+    foreach ($definition in $Definitions) {
+        if (-not (Test-Path -LiteralPath $definition.ProviderPath)) {
+            Write-WinBreakLog -Message ('Chiave AppCompat assente, nessun export necessario: {0}' -f $definition.RegPath) -Level DEBUG
+            [void]$exports.Add([pscustomobject]@{
+                    RegPath    = $definition.RegPath
+                    Existed    = $false
+                    BackupPath = $null
+                })
+            continue
+        }
+
+        $backupPath = Join-Path -Path $backupDirectory -ChildPath $definition.BackupName
+        $arguments = @('export', $definition.RegPath, $backupPath, '/y')
+        Write-WinBreakLog -Message (Format-WinBreakCommandLine -FilePath 'reg.exe' -ArgumentList $arguments) -Level INFO
+        $result = Invoke-WinBreakNativeCommand -FilePath 'reg.exe' -ArgumentList $arguments
+        foreach ($line in $result.Output) {
+            Write-WinBreakLog -Message ([string]$line) -Level DEBUG -NoConsole
+        }
+        if ($result.ExitCode -ne 0) {
+            throw ('Backup della chiave Registry fallito con exit code {0}: {1}' -f $result.ExitCode, $definition.RegPath)
+        }
+        if (-not (Test-Path -LiteralPath $backupPath -PathType Leaf)) {
+            throw ('reg.exe export non ha creato il file atteso: {0}' -f $backupPath)
+        }
+
+        Write-WinBreakLog -Message ('Backup chiave Registry creato: {0}' -f $backupPath) -Level SUCCESS
+        [void]$exports.Add([pscustomobject]@{
+                RegPath    = $definition.RegPath
+                Existed    = $true
+                BackupPath = $backupPath
+            })
+    }
+
+    return [pscustomobject]@{
+        Directory = $backupDirectory
+        Exports   = $exports.ToArray()
     }
 }
 
@@ -1085,15 +1211,124 @@ function Test-WinBreakRegistryValue {
 
     $properties = Get-ItemProperty -LiteralPath $Definition.ProviderPath -Name $Definition.ValueName -ErrorAction Stop
     $property = $properties.PSObject.Properties[$Definition.ValueName]
-    if ($null -eq $property -or [int]$property.Value -ne 1) {
-        throw ('Verifica Registry fallita per {0}\{1}: valore diverso da 1.' -f $Definition.RegPath, $Definition.ValueName)
+    if ($null -eq $property) {
+        throw ('Verifica Registry fallita per {0}\{1}: valore assente.' -f $Definition.RegPath, $Definition.ValueName)
     }
+
     $registryKey = Get-Item -LiteralPath $Definition.ProviderPath -ErrorAction Stop
     $kind = [string]$registryKey.GetValueKind($Definition.ValueName)
-    if ($kind -ne 'DWord') {
-        throw ('Verifica Registry fallita per {0}\{1}: tipo {2}, atteso DWord.' -f $Definition.RegPath, $Definition.ValueName, $kind)
+    if ($kind -ne $Definition.ProviderKind) {
+        throw ('Verifica Registry fallita per {0}\{1}: tipo {2}, atteso {3}.' -f $Definition.RegPath, $Definition.ValueName, $kind, $Definition.ProviderKind)
     }
+
+    switch ($Definition.ValueType) {
+        'REG_DWORD' {
+            if ([Convert]::ToInt64($property.Value) -ne [Convert]::ToInt64($Definition.DesiredValue)) {
+                throw ('Verifica Registry fallita per {0}\{1}: valore {2}, atteso {3}.' -f $Definition.RegPath, $Definition.ValueName, $property.Value, $Definition.DesiredValue)
+            }
+        }
+        'REG_MULTI_SZ' {
+            $actual = @($property.Value | ForEach-Object { [string]$_ })
+            $expected = @($Definition.DesiredValue | ForEach-Object { [string]$_ })
+            if ($actual.Count -ne $expected.Count) {
+                throw ('Verifica Registry fallita per {0}\{1}: numero elementi {2}, atteso {3}.' -f $Definition.RegPath, $Definition.ValueName, $actual.Count, $expected.Count)
+            }
+            for ($index = 0; $index -lt $expected.Count; $index++) {
+                if ($actual[$index] -cne $expected[$index]) {
+                    throw ('Verifica Registry fallita per {0}\{1}: elemento {2} diverso. Trovato "{3}", atteso "{4}".' -f $Definition.RegPath, $Definition.ValueName, $index, $actual[$index], $expected[$index])
+    }
+            }
+        }
+        default {
+            throw ('Tipo Registry non supportato: {0}' -f $Definition.ValueType)
+        }
+    }
+
     return $true
+}
+
+function New-WinBreakRegistryAddArguments {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [psobject]$Definition
+    )
+
+    switch ($Definition.ValueType) {
+        'REG_DWORD' {
+            return @(
+                'add',
+                $Definition.RegPath,
+                '/v',
+                $Definition.ValueName,
+                '/t',
+                'REG_DWORD',
+                '/d',
+                ([string]$Definition.DesiredValue),
+                '/f'
+            )
+        }
+        'REG_MULTI_SZ' {
+            return @(
+                'add',
+                $Definition.RegPath,
+                '/v',
+                $Definition.ValueName,
+                '/t',
+                'REG_MULTI_SZ',
+                '/s',
+                ',',
+                '/d',
+                (@($Definition.DesiredValue) -join ','),
+                '/f'
+            )
+        }
+        default {
+            throw ('Tipo Registry non supportato: {0}' -f $Definition.ValueType)
+        }
+    }
+}
+
+function Set-WinBreakRegistryDefinition {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [psobject]$Definition
+    )
+
+    $alreadyCorrect = $false
+    if (Test-Path -LiteralPath $Definition.ProviderPath) {
+        try {
+            $alreadyCorrect = Test-WinBreakRegistryValue -Definition $Definition
+        }
+        catch {
+            $alreadyCorrect = $false
+        }
+    }
+
+    if ($alreadyCorrect) {
+        Write-WinBreakLog -Message ('Registry già configurato: {0}\{1}' -f $Definition.RegPath, $Definition.ValueName) -Level DEBUG
+        return
+    }
+
+    $arguments = New-WinBreakRegistryAddArguments -Definition $Definition
+    Write-WinBreakLog -Message (Format-WinBreakCommandLine -FilePath 'reg.exe' -ArgumentList $arguments) -Level INFO
+    $result = Invoke-WinBreakNativeCommand -FilePath 'reg.exe' -ArgumentList $arguments
+    foreach ($line in $result.Output) {
+        Write-WinBreakLog -Message ([string]$line) -Level DEBUG -NoConsole
+    }
+    if ($result.ExitCode -ne 0) {
+        throw ('reg.exe ha restituito exit code {0} per {1}\{2}.' -f $result.ExitCode, $Definition.RegPath, $Definition.ValueName)
+    }
+
+    [void](Test-WinBreakRegistryValue -Definition $Definition)
+    $valueDisplay = if ($Definition.ValueType -eq 'REG_MULTI_SZ') {
+        @($Definition.DesiredValue) -join ' | '
+    }
+    else {
+        [string]$Definition.DesiredValue
+    }
+    Write-WinBreakLog -Message ('Registry verificato: {0}\{1} = {2} ({3})' -f $Definition.RegPath, $Definition.ValueName, $valueDisplay, $Definition.ValueType) -Level SUCCESS
 }
 
 function Format-WinBreakCommandLine {
@@ -1171,52 +1406,100 @@ function Set-WinBreakRegistryBypasses {
     )
 
     $definitions = @(Get-WinBreakRegistryDefinitions)
+    $deleteDefinitions = @(Get-WinBreakRegistryDeleteDefinitions)
+    $labConfigPath = 'HKLM\SYSTEM\Setup\LabConfig'
+    $labConfigProviderPath = 'Registry::HKEY_LOCAL_MACHINE\SYSTEM\Setup\LabConfig'
+
+    $labConfigDefinitions = @($definitions | Where-Object { $_.RegPath -eq $labConfigPath })
+    $hwReqDefinition = @($definitions | Where-Object { $_.ValueName -eq 'HwReqChkVars' })
+    $moSetupDefinition = @($definitions | Where-Object { $_.ValueName -eq 'AllowUpgradesWithUnsupportedTPMOrCPU' })
+
+    if ($hwReqDefinition.Count -ne 1 -or $moSetupDefinition.Count -ne 1) {
+        throw 'Definizioni Registry WinBreak incomplete o duplicate.'
+    }
+
     if ($DryRun) {
-        Write-WinBreakLog -Message ('[DRYRUN] Backup JSON dello stato Registry in {0}' -f $BackupRoot) -Level INFO
-        foreach ($definition in $definitions) {
-            $arguments = @('add', $definition.RegPath, '/v', $definition.ValueName, '/t', 'REG_DWORD', '/d', '1', '/f')
+        Write-WinBreakLog -Message ('[DRYRUN] Backup JSON dei valori Registry in {0}' -f $BackupRoot) -Level INFO
+        Write-WinBreakLog -Message ('[DRYRUN] Export delle chiavi AppCompat esistenti in {0}' -f $BackupRoot) -Level INFO
+
+        $createLabConfigArguments = @('add', $labConfigPath, '/f')
+        Write-WinBreakLog -Message ('[DRYRUN] {0}' -f (Format-WinBreakCommandLine -FilePath 'reg.exe' -ArgumentList $createLabConfigArguments)) -Level INFO
+
+        foreach ($definition in $labConfigDefinitions) {
+            $arguments = New-WinBreakRegistryAddArguments -Definition $definition
             Write-WinBreakLog -Message ('[DRYRUN] {0}' -f (Format-WinBreakCommandLine -FilePath 'reg.exe' -ArgumentList $arguments)) -Level INFO
         }
-        return [pscustomobject]@{ Changed = $false; Planned = $true; BackupPath = $null }
+
+        foreach ($definition in $deleteDefinitions) {
+            $arguments = @('delete', $definition.RegPath, '/f')
+            Write-WinBreakLog -Message ('[DRYRUN] {0}' -f (Format-WinBreakCommandLine -FilePath 'reg.exe' -ArgumentList $arguments)) -Level INFO
+        }
+
+        foreach ($definition in @($hwReqDefinition[0], $moSetupDefinition[0])) {
+            $arguments = New-WinBreakRegistryAddArguments -Definition $definition
+            Write-WinBreakLog -Message ('[DRYRUN] {0}' -f (Format-WinBreakCommandLine -FilePath 'reg.exe' -ArgumentList $arguments)) -Level INFO
+        }
+
+        return [pscustomobject]@{
+            Changed            = $false
+            Planned            = $true
+            BackupPath         = $null
+            KeyBackupDirectory = $null
+        }
     }
 
     $backup = Backup-WinBreakRegistryState -BackupRoot $BackupRoot -Definitions $definitions
-    foreach ($definition in $definitions) {
-        $matchingStates = @($backup.States | Where-Object { $_.ProviderPath -eq $definition.ProviderPath -and $_.ValueName -eq $definition.ValueName })
-        if ($matchingStates.Count -ne 1) {
-            throw ('Backup Registry incompleto per {0}\{1}.' -f $definition.RegPath, $definition.ValueName)
+    $keyBackup = Backup-WinBreakRegistryKeys -BackupRoot $BackupRoot -Definitions $deleteDefinitions
+
+    $createLabConfigArguments = @('add', $labConfigPath, '/f')
+    Write-WinBreakLog -Message (Format-WinBreakCommandLine -FilePath 'reg.exe' -ArgumentList $createLabConfigArguments) -Level INFO
+    $createResult = Invoke-WinBreakNativeCommand -FilePath 'reg.exe' -ArgumentList $createLabConfigArguments
+    foreach ($line in $createResult.Output) {
+        Write-WinBreakLog -Message ([string]$line) -Level DEBUG -NoConsole
+    }
+    if ($createResult.ExitCode -ne 0) {
+        throw ('Impossibile creare o verificare LabConfig: reg.exe exit code {0}.' -f $createResult.ExitCode)
         }
-        $state = $matchingStates[0]
-        $alreadyCorrect = $false
-        if ($state.ValueExisted -and $state.PreviousKind -eq 'DWord') {
-            try {
-                $alreadyCorrect = ([Convert]::ToInt64($state.PreviousValue) -eq 1)
-            }
-            catch {
-                $alreadyCorrect = $false
-            }
+    if (-not (Test-Path -LiteralPath $labConfigProviderPath)) {
+        throw 'LabConfig non risulta presente dopo reg.exe add.'
+    }
+    Write-WinBreakLog -Message 'Chiave LabConfig presente.' -Level SUCCESS
+
+    foreach ($definition in $labConfigDefinitions) {
+        Set-WinBreakRegistryDefinition -Definition $definition
+    }
+
+    foreach ($definition in $deleteDefinitions) {
+        if (-not (Test-Path -LiteralPath $definition.ProviderPath)) {
+            Write-WinBreakLog -Message ('Cache AppCompat già assente: {0}' -f $definition.RegPath) -Level DEBUG
+            continue
         }
 
-        if ($alreadyCorrect) {
-            Write-WinBreakLog -Message ('Registry già configurato: {0}\{1}' -f $definition.RegPath, $definition.ValueName) -Level DEBUG
-        }
-        else {
-            $arguments = @('add', $definition.RegPath, '/v', $definition.ValueName, '/t', 'REG_DWORD', '/d', '1', '/f')
+        $arguments = @('delete', $definition.RegPath, '/f')
             Write-WinBreakLog -Message (Format-WinBreakCommandLine -FilePath 'reg.exe' -ArgumentList $arguments) -Level INFO
             $result = Invoke-WinBreakNativeCommand -FilePath 'reg.exe' -ArgumentList $arguments
             foreach ($line in $result.Output) {
                 Write-WinBreakLog -Message ([string]$line) -Level DEBUG -NoConsole
             }
             if ($result.ExitCode -ne 0) {
-                throw ('reg.exe ha restituito exit code {0} per {1}.' -f $result.ExitCode, $definition.ValueName)
+            throw ('reg.exe delete ha restituito exit code {0} per {1}.' -f $result.ExitCode, $definition.RegPath)
             }
+        if (Test-Path -LiteralPath $definition.ProviderPath) {
+            throw ('La chiave AppCompat risulta ancora presente dopo la rimozione: {0}' -f $definition.RegPath)
         }
-
-        [void](Test-WinBreakRegistryValue -Definition $definition)
-        Write-WinBreakLog -Message ('Registry verificato: {0}\{1} = DWORD 1' -f $definition.RegPath, $definition.ValueName) -Level SUCCESS
+        Write-WinBreakLog -Message ('Cache AppCompat rimossa: {0}' -f $definition.RegPath) -Level SUCCESS
     }
 
-    return [pscustomobject]@{ Changed = $true; Planned = $false; BackupPath = $backup.Path }
+    Set-WinBreakRegistryDefinition -Definition $hwReqDefinition[0]
+    Set-WinBreakRegistryDefinition -Definition $moSetupDefinition[0]
+
+    Write-WinBreakLog -Message 'Patch Registry requisiti Windows 11 applicata e verificata.' -Level SUCCESS
+    return [pscustomobject]@{
+        Changed            = $true
+        Planned            = $false
+        BackupPath         = $backup.Path
+        KeyBackupDirectory = $keyBackup.Directory
+    }
 }
 
 function Read-WinBreakConfirmation {
