@@ -168,7 +168,7 @@ function Test-WinBreakInteractiveHost {
     }
 }
 
-function Pause-WinBreak {
+function Wait-WinBreak {
     [CmdletBinding()]
     param(
         [string]$Message = 'PREMERE UN TASTO PER USCIRE...'
@@ -182,6 +182,8 @@ function Pause-WinBreak {
         [void](Read-Host)
     }
 }
+
+Set-Alias -Name Kill-WinBreak -Value Wait-WinBreak -Scope Script
 
 function Format-WinBreakSize {
     [CmdletBinding()]
@@ -342,7 +344,7 @@ function ConvertFrom-WinBreakPathInput {
     $value = [regex]::Replace(
         $value,
         '(?i)\$env:([A-Za-z_][A-Za-z0-9_]*)',
-        [Text.RegularExpressions.MatchEvaluator]{
+        [Text.RegularExpressions.MatchEvaluator] {
             param($match)
             $environmentValue = [Environment]::GetEnvironmentVariable($match.Groups[1].Value)
             if ($null -eq $environmentValue) { return $match.Value }
@@ -477,15 +479,15 @@ function Get-WinBreakPathCompletions {
             return @()
         }
 
-        $matches = New-Object System.Collections.Generic.List[object]
+        $matches_ = New-Object System.Collections.Generic.List[object]
         foreach ($item in @(Get-ChildItem -LiteralPath $parent -Force -ErrorAction Stop)) {
             if (-not $item.Name.StartsWith($leaf, [StringComparison]::OrdinalIgnoreCase)) { continue }
             $rank = if (-not $item.PSIsContainer -and $item.Extension -ieq '.iso') { 0 } elseif ($item.PSIsContainer) { 1 } else { 2 }
-            [void]$matches.Add([pscustomobject]@{ Item = $item; Rank = $rank })
+            [void]$matches_.Add([pscustomobject]@{ Item = $item; Rank = $rank })
         }
 
         $results = New-Object System.Collections.Generic.List[string]
-        foreach ($match in @($matches | Sort-Object -Property Rank, @{ Expression = { $_.Item.Name.ToUpperInvariant() } })) {
+        foreach ($match in @($matches_ | Sort-Object -Property Rank, @{ Expression = { $_.Item.Name.ToUpperInvariant() } })) {
             $completed = $match.Item.FullName
             if ($match.Item.PSIsContainer) {
                 $completed += [IO.Path]::DirectorySeparatorChar
@@ -695,13 +697,13 @@ function Mount-WinBreakIso {
     if ($DryRun) {
         Write-WinBreakLog -Message ('[DRYRUN] Mount-DiskImage -ImagePath "{0}"' -f $IsoPath) -Level INFO
         return [pscustomobject]@{
-            ImagePath = $IsoPath
-            DiskImage = $null
-            Root = $null
-            DriveLetter = $null
+            ImagePath         = $IsoPath
+            DiskImage         = $null
+            Root              = $null
+            DriveLetter       = $null
             MountedByWinBreak = $true
-            Dismounted = $false
-            DryRun = $true
+            Dismounted        = $false
+            DryRun            = $true
         }
     }
 
@@ -725,8 +727,8 @@ function Mount-WinBreakIso {
             $volumes = @($diskImage | Get-Volume -ErrorAction SilentlyContinue | Where-Object { $null -ne $_.DriveLetter })
             if ($volumes.Count -gt 0) {
                 $selectedVolume = @($volumes | Sort-Object -Property @{ Expression = { [string]$_.DriveLetter } } | Where-Object {
-                    Test-Path -LiteralPath ('{0}:\' -f $_.DriveLetter) -PathType Container
-                } | Select-Object -First 1)
+                        Test-Path -LiteralPath ('{0}:\' -f $_.DriveLetter) -PathType Container
+                    } | Select-Object -First 1)
                 if ($selectedVolume.Count -gt 0) {
                     $selectedVolume = $selectedVolume[0]
                     break
@@ -744,13 +746,13 @@ function Mount-WinBreakIso {
         $root = '{0}:\' -f $driveLetter
         Write-WinBreakLog -Message ('ISO disponibile in {0}' -f $root) -Level SUCCESS
         return [pscustomobject]@{
-            ImagePath = $IsoPath
-            DiskImage = $diskImage
-            Root = $root
-            DriveLetter = $driveLetter
+            ImagePath         = $IsoPath
+            DiskImage         = $diskImage
+            Root              = $root
+            DriveLetter       = $driveLetter
             MountedByWinBreak = $mountedByWinBreak
-            Dismounted = $false
-            DryRun = $false
+            Dismounted        = $false
+            DryRun            = $false
         }
     }
     catch {
@@ -894,13 +896,13 @@ function Get-WinBreakWindowsEditions {
         $architecture = ConvertTo-WinBreakArchitectureName -Architecture (Get-WinBreakObjectPropertyValue -InputObject $details -PropertyName 'Architecture' -DefaultValue '')
 
         [void]$editions.Add([pscustomobject]@{
-            ImageIndex = $imageIndex
-            ImageName = [string]$imageName
-            EditionId = [string]$editionId
-            Architecture = $architecture
-            Version = [string]$version
-            BuildNumber = Get-WinBreakBuildNumber -Version $version
-        })
+                ImageIndex   = $imageIndex
+                ImageName    = [string]$imageName
+                EditionId    = [string]$editionId
+                Architecture = $architecture
+                Version      = [string]$version
+                BuildNumber  = Get-WinBreakBuildNumber -Version $version
+            })
     }
 
     return $editions.ToArray()
@@ -957,11 +959,11 @@ function Test-WinBreakWindows11Media {
     }
 
     return [pscustomobject]@{
-        IsValid = ($errors.Count -eq 0)
-        RootPath = $RootPath
+        IsValid     = ($errors.Count -eq 0)
+        RootPath    = $RootPath
         PayloadPath = $payloadPath
-        Editions = $editions
-        Errors = $errors.ToArray()
+        Editions    = $editions
+        Errors      = $errors.ToArray()
     }
 }
 
@@ -986,19 +988,19 @@ function Get-WinBreakRegistryDefinitions {
 
     return @(
         [pscustomobject]@{
-            RegPath = 'HKLM\SYSTEM\Setup\LabConfig'
+            RegPath      = 'HKLM\SYSTEM\Setup\LabConfig'
             ProviderPath = 'Registry::HKEY_LOCAL_MACHINE\SYSTEM\Setup\LabConfig'
-            ValueName = 'BypassTPMCheck'
+            ValueName    = 'BypassTPMCheck'
         },
         [pscustomobject]@{
-            RegPath = 'HKLM\SYSTEM\Setup\LabConfig'
+            RegPath      = 'HKLM\SYSTEM\Setup\LabConfig'
             ProviderPath = 'Registry::HKEY_LOCAL_MACHINE\SYSTEM\Setup\LabConfig'
-            ValueName = 'BypassSecureBootCheck'
+            ValueName    = 'BypassSecureBootCheck'
         },
         [pscustomobject]@{
-            RegPath = 'HKLM\SYSTEM\Setup\MoSetup'
+            RegPath      = 'HKLM\SYSTEM\Setup\MoSetup'
             ProviderPath = 'Registry::HKEY_LOCAL_MACHINE\SYSTEM\Setup\MoSetup'
-            ValueName = 'AllowUpgradesWithUnsupportedTPMOrCPU'
+            ValueName    = 'AllowUpgradesWithUnsupportedTPMOrCPU'
         }
     )
 }
@@ -1031,13 +1033,13 @@ function Get-WinBreakRegistryState {
     }
 
     return [pscustomobject]@{
-        RegPath = $Definition.RegPath
-        ProviderPath = $Definition.ProviderPath
-        ValueName = $Definition.ValueName
-        KeyExisted = $keyExists
-        ValueExisted = $valueExists
+        RegPath       = $Definition.RegPath
+        ProviderPath  = $Definition.ProviderPath
+        ValueName     = $Definition.ValueName
+        KeyExisted    = $keyExists
+        ValueExisted  = $valueExists
         PreviousValue = $previousValue
-        PreviousKind = $previousKind
+        PreviousKind  = $previousKind
     }
 }
 
@@ -1068,7 +1070,7 @@ function Backup-WinBreakRegistryState {
     Write-WinBreakLog -Message ('Backup Registry creato: {0}' -f $backupPath) -Level SUCCESS
 
     return [pscustomobject]@{
-        Path = $backupPath
+        Path   = $backupPath
         States = $states.ToArray()
     }
 }
@@ -1155,7 +1157,7 @@ function Invoke-WinBreakNativeCommand {
     }
     return [pscustomobject]@{
         ExitCode = $exitCode
-        Output = $output
+        Output   = $output
     }
 }
 
@@ -1513,11 +1515,13 @@ function New-WinBreakRobocopyArguments {
         [Parameter(Mandatory = $true)]
         [string]$DestinationPath
     )
-
     $source = Get-WinBreakCanonicalPath -Path $SourcePath
     $sourceRoot = [IO.Path]::GetPathRoot($source)
+
     if ($source -ieq $sourceRoot) {
-        $source = Join-Path -Path $source -ChildPath '.'
+        # Non usare Join-Path: richiederebbe che la lettera esista
+        # anche quando stiamo solamente costruendo una command line.
+        $source = $sourceRoot + '.'
     }
     $destination = Get-WinBreakCanonicalPath -Path $DestinationPath
     return @($source, $destination, '/MIR', '/R:2', '/W:2', '/XJ')
@@ -1526,7 +1530,7 @@ function New-WinBreakRobocopyArguments {
 function Copy-WinBreakMedia {
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory = $true)]
+        [AllowNull()]
         [string]$SourceRoot,
 
         [Parameter(Mandatory = $true)]
@@ -1535,61 +1539,148 @@ function Copy-WinBreakMedia {
         [switch]$DryRun
     )
 
-    $arguments = New-WinBreakRobocopyArguments -SourcePath $SourceRoot -DestinationPath $WorkDirectory
-    $command = Format-WinBreakCommandLine -FilePath 'robocopy.exe' -ArgumentList $arguments
-    Write-WinBreakLog -Message $command -Level INFO
-
+    # In DryRun la ISO non viene realmente montata, quindi non esiste
+    # alcuna SourceRoot reale. Stampiamo soltanto il comando pianificato
+    # senza passare da funzioni che risolvono lettere di unità.
     if ($DryRun) {
-        Write-WinBreakLog -Message '[DRYRUN] Robocopy non eseguito.' -Level INFO
-        return [pscustomobject]@{ Success = $true; Planned = $true; ExitCode = $null }
+        $destination = Get-WinBreakCanonicalPath -Path $WorkDirectory
+
+        $arguments = @(
+            '<RADICE-ISO-MONTATA>',
+            $destination,
+            '/MIR',
+            '/R:2',
+            '/W:2',
+            '/XJ'
+        )
+
+        $command = Format-WinBreakCommandLine `
+            -FilePath 'robocopy.exe' `
+            -ArgumentList $arguments
+
+        Write-WinBreakLog `
+            -Message ('[DRYRUN] {0}' -f $command) `
+            -Level INFO
+
+        Write-WinBreakLog `
+            -Message '[DRYRUN] Robocopy non eseguito.' `
+            -Level INFO
+
+        return [pscustomobject]@{
+            Success  = $true
+            Planned  = $true
+            ExitCode = $null
+        }
     }
+
+    # Da questo punto in poi siamo in esecuzione reale:
+    # la ISO deve essere realmente montata e SourceRoot deve esistere.
+    if ([string]::IsNullOrWhiteSpace($SourceRoot)) {
+        throw 'La radice della ISO montata non è disponibile.'
+    }
+
+    $arguments = New-WinBreakRobocopyArguments `
+        -SourcePath $SourceRoot `
+        -DestinationPath $WorkDirectory
+
+    $command = Format-WinBreakCommandLine `
+        -FilePath 'robocopy.exe' `
+        -ArgumentList $arguments
+
+    Write-WinBreakLog -Message $command -Level INFO
 
     $source = Get-WinBreakCanonicalPath -Path $SourceRoot
     $destination = Get-WinBreakCanonicalPath -Path $WorkDirectory
+
     if (-not (Test-Path -LiteralPath $source -PathType Container)) {
         throw ('Sorgente ISO non accessibile: {0}' -f $source)
     }
+
     if (-not (Test-Path -LiteralPath $destination -PathType Container)) {
         throw ('Work directory non accessibile: {0}' -f $destination)
     }
+
     if ($source.Equals($destination, [StringComparison]::OrdinalIgnoreCase)) {
         throw 'Sorgente e destinazione coincidono.'
     }
+
     if (Test-WinBreakPathIsWithin -Path $destination -ParentPath $source) {
         throw 'La work directory non può trovarsi dentro la ISO montata.'
     }
+
     if (Test-WinBreakPathHasReparsePoint -Path $destination) {
         throw 'La work directory non può attraversare reparse point.'
     }
 
     $requiredSpace = Get-WinBreakRequiredSpace -SourcePath $source
     $availableSpace = Get-WinBreakAvailableSpace -Path $destination
-    Write-WinBreakLog -Message ('Spazio richiesto stimato: {0}; disponibile: {1}' -f (Format-WinBreakSize -Bytes $requiredSpace), (Format-WinBreakSize -Bytes $availableSpace)) -Level INFO
+
+    Write-WinBreakLog `
+        -Message (
+        'Spazio richiesto stimato: {0}; disponibile: {1}' -f `
+        (Format-WinBreakSize -Bytes $requiredSpace),
+        (Format-WinBreakSize -Bytes $availableSpace)
+    ) `
+        -Level INFO
+
     if ($availableSpace -lt $requiredSpace) {
-        throw ('Spazio insufficiente: servono almeno {0}, disponibili {1}.' -f (Format-WinBreakSize -Bytes $requiredSpace), (Format-WinBreakSize -Bytes $availableSpace))
+        throw (
+            'Spazio insufficiente: servono almeno {0}, disponibili {1}.' -f `
+            (Format-WinBreakSize -Bytes $requiredSpace),
+            (Format-WinBreakSize -Bytes $availableSpace)
+        )
     }
 
-    $result = Invoke-WinBreakNativeCommand -FilePath 'robocopy.exe' -ArgumentList $arguments
+    $result = Invoke-WinBreakNativeCommand `
+        -FilePath 'robocopy.exe' `
+        -ArgumentList $arguments
+
     foreach ($line in $result.Output) {
-        Write-WinBreakLog -Message ([string]$line) -Level DEBUG -NoConsole
+        Write-WinBreakLog `
+            -Message ([string]$line) `
+            -Level DEBUG `
+            -NoConsole
     }
-    Write-WinBreakLog -Message ('Exit code robocopy: {0}' -f $result.ExitCode) -Level DEBUG
+
+    Write-WinBreakLog `
+        -Message ('Exit code robocopy: {0}' -f $result.ExitCode) `
+        -Level DEBUG
+
     if (-not (Test-WinBreakRobocopyExitCode -ExitCode $result.ExitCode)) {
-        throw ('Robocopy ha restituito un errore bloccante (exit code {0}).' -f $result.ExitCode)
+        throw (
+            'Robocopy ha restituito un errore bloccante (exit code {0}).' -f `
+                $result.ExitCode
+        )
     }
 
     foreach ($check in @(
-        @{ Path = (Join-Path $destination 'setup.exe'); Type = 'Leaf' },
-        @{ Path = (Join-Path $destination 'sources'); Type = 'Container' },
-        @{ Path = (Join-Path $destination 'boot'); Type = 'Container' }
-    )) {
+            @{
+                Path = Join-Path $destination 'setup.exe'
+                Type = 'Leaf'
+            },
+            @{
+                Path = Join-Path $destination 'sources'
+                Type = 'Container'
+            },
+            @{
+                Path = Join-Path $destination 'boot'
+                Type = 'Container'
+            }
+        )) {
         if (-not (Test-Path -LiteralPath $check.Path -PathType $check.Type)) {
             throw ('Verifica post-copia fallita: {0}' -f $check.Path)
         }
     }
 
-    Write-WinBreakLog -Message 'Contenuto ISO copiato e verificato.' -Level SUCCESS
-    return [pscustomobject]@{ Success = $true; Planned = $false; ExitCode = $result.ExitCode }
+    Write-WinBreakLog `
+        -Message 'Contenuto ISO copiato e verificato.' `
+        -Level SUCCESS
+
+    return [pscustomobject]@{
+        Success  = $true
+        Planned  = $false
+        ExitCode = $result.ExitCode
+    }
 }
 
 function Remove-WinBreakAppraiser {
@@ -1674,13 +1765,13 @@ function Find-WinBreakOscdimg {
         'C:\Program Files (x86)\Windows Kits\10\Assessment and Deployment Kit\Deployment Tools\*\Oscdimg\oscdimg.exe',
         'C:\Program Files\Windows Kits\10\Assessment and Deployment Kit\Deployment Tools\*\Oscdimg\oscdimg.exe'
     )
-    $matches = New-Object System.Collections.Generic.List[string]
+    $matches_ = New-Object System.Collections.Generic.List[string]
     foreach ($pattern in $controlledPatterns) {
         foreach ($item in @(Get-Item -Path $pattern -Force -ErrorAction SilentlyContinue)) {
-            if (-not $item.PSIsContainer) { [void]$matches.Add($item.FullName) }
+            if (-not $item.PSIsContainer) { [void]$matches_.Add($item.FullName) }
         }
     }
-    $sortedMatches = @($matches | Sort-Object)
+    $sortedMatches = @($matches_ | Sort-Object)
     if ($sortedMatches.Count -eq 0) {
         return $null
     }
@@ -2053,7 +2144,7 @@ function Invoke-WinBreakCore {
                 Write-Host 'NON È UNA ISO DI WINDOWS 11 REALE E INTEGRA.' -ForegroundColor Red
                 Write-WinBreakLog -Message 'NON È UNA ISO DI WINDOWS 11 REALE E INTEGRA.' -Level ERROR -NoConsole
                 $pauseAlreadyShown = $true
-                Pause-WinBreak -Message 'PREMERE UN TASTO PER USCIRE...'
+                Kill-WinBreak -Message 'PREMERE UN TASTO PER USCIRE...'
                 return 2
             }
             Write-WinBreakLog -Message 'Struttura e metadati Windows 11 verificati (controllo strutturale, non crittografico).' -Level SUCCESS
@@ -2067,13 +2158,10 @@ function Invoke-WinBreakCore {
             return 0
         }
 
-        $sourceRoot = if ($DryRun) {
-            'X:\'
-        }
-        else {
-            $mountInfo.Root
-        }
-        [void](Copy-WinBreakMedia -SourceRoot $sourceRoot -WorkDirectory $resolvedWorkDirectory -DryRun:$DryRun)
+        [void](Copy-WinBreakMedia `
+                -SourceRoot $mountInfo.Root `
+                -WorkDirectory $resolvedWorkDirectory `
+                -DryRun:$DryRun)
 
         if ($mountInfo.MountedByWinBreak -and -not $KeepMounted) {
             Dismount-WinBreakIso -MountInfo $mountInfo -DryRun:$DryRun
@@ -2119,7 +2207,7 @@ function Invoke-WinBreakCore {
         }
         if (Test-WinBreakInteractiveHost) {
             $pauseAlreadyShown = $true
-            Pause-WinBreak -Message 'PREMERE UN TASTO PER USCIRE...'
+            Kill-WinBreak -Message 'PREMERE UN TASTO PER USCIRE...'
         }
         return 1
     }
@@ -2136,7 +2224,7 @@ function Invoke-WinBreakCore {
                     Write-Host ('Log: {0}' -f $script:WinBreakLogPath) -ForegroundColor Gray
                 }
                 if (-not $pauseAlreadyShown -and (Test-WinBreakInteractiveHost)) {
-                    Pause-WinBreak -Message 'PREMERE UN TASTO PER USCIRE...'
+                    Kill-WinBreak -Message 'PREMERE UN TASTO PER USCIRE...'
                 }
             }
         }

@@ -131,25 +131,25 @@ Describe 'WinBreak - test unitari non distruttivi' {
         }
 
         It 'espande tilde rispetto al profilo utente iniettato' {
-            $profile = Join-Path -Path $TestDrive -ChildPath 'Test User'
-            $expected = [IO.Path]::GetFullPath((Join-Path -Path $profile -ChildPath 'Downloads\Win11.iso'))
+            $profile_ = Join-Path -Path $TestDrive -ChildPath 'Test User'
+            $expected = [IO.Path]::GetFullPath((Join-Path -Path $profile_ -ChildPath 'Downloads\Win11.iso'))
 
-            ConvertFrom-WinBreakPathInput -InputPath '~\Downloads\Win11.iso' -UserProfile $profile -BasePath $TestDrive |
-                Should -Be $expected
+            ConvertFrom-WinBreakPathInput -InputPath '~\Downloads\Win11.iso' -UserProfile $profile_ -BasePath $TestDrive |
+            Should -Be $expected
         }
 
         It 'espande variabili ambiente sia in formato percentuale sia PowerShell' {
             $variableName = 'WINBREAK_PESTER_PROFILE'
             $previousValue = [Environment]::GetEnvironmentVariable($variableName)
-            $profile = Join-Path -Path $TestDrive -ChildPath 'Environment Profile'
+            $profile_ = Join-Path -Path $TestDrive -ChildPath 'Environment Profile'
             try {
-                [Environment]::SetEnvironmentVariable($variableName, $profile)
-                $expected = [IO.Path]::GetFullPath((Join-Path -Path $profile -ChildPath 'Downloads\Win11.iso'))
+                [Environment]::SetEnvironmentVariable($variableName, $profile_)
+                $expected = [IO.Path]::GetFullPath((Join-Path -Path $profile_ -ChildPath 'Downloads\Win11.iso'))
 
                 ConvertFrom-WinBreakPathInput -InputPath '%WINBREAK_PESTER_PROFILE%\Downloads\Win11.iso' -UserProfile $TestDrive -BasePath $TestDrive |
-                    Should -Be $expected
+                Should -Be $expected
                 ConvertFrom-WinBreakPathInput -InputPath '$env:WINBREAK_PESTER_PROFILE\Downloads\Win11.iso' -UserProfile $TestDrive -BasePath $TestDrive |
-                    Should -Be $expected
+                Should -Be $expected
             }
             finally {
                 [Environment]::SetEnvironmentVariable($variableName, $previousValue)
@@ -160,7 +160,7 @@ Describe 'WinBreak - test unitari non distruttivi' {
             $expected = [IO.Path]::GetFullPath((Join-Path -Path $TestDrive -ChildPath 'relative\Win11.iso'))
 
             ConvertFrom-WinBreakPathInput -InputPath 'relative\Win11.iso' -UserProfile $TestDrive -BasePath $TestDrive |
-                Should -Be $expected
+            Should -Be $expected
         }
 
         It 'impedisce a Resolve-WinBreakIsoPath di accettare un percorso relativo' {
@@ -183,7 +183,58 @@ Describe 'WinBreak - test unitari non distruttivi' {
             ConvertFrom-WinBreakPathInput -InputPath '   ' -UserProfile $TestDrive -BasePath $TestDrive | Should -Be ''
         }
     }
+    Context 'Argomenti robocopy' {
+        It 'gestisce una radice volume non montata senza risolverla come PSDrive' {
+            $driveName = @(
+                'Q',
+                'R',
+                'S',
+                'T',
+                'U',
+                'V',
+                'W',
+                'X',
+                'Y',
+                'Z'
+            ) |
+            Where-Object {
+                $null -eq (
+                    Get-PSDrive `
+                        -Name $_ `
+                        -PSProvider FileSystem `
+                        -ErrorAction SilentlyContinue
+                )
+            } |
+            Select-Object -First 1
 
+            if ([string]::IsNullOrWhiteSpace($driveName)) {
+                throw 'Nessuna lettera di unità libera disponibile per il test.'
+            }
+
+            $sourceRoot = '{0}:\' -f $driveName
+            $destination = Join-Path $TestDrive 'robocopy-destination'
+
+            $actual = @(
+                New-WinBreakRobocopyArguments `
+                    -SourcePath $sourceRoot `
+                    -DestinationPath $destination
+            )
+
+            $actual.Count | Should -Be 6
+            $actual[0] | Should -Be ($sourceRoot + '.')
+            $actual[1] | Should -Be (
+                Get-WinBreakCanonicalPath -Path $destination
+            )
+            $actual[2] | Should -Be '/MIR'
+            $actual[3] | Should -Be '/R:2'
+            $actual[4] | Should -Be '/W:2'
+            $actual[5] | Should -Be '/XJ'
+
+            foreach ($argument in $actual) {
+                ([string]$argument).Contains('"') | Should -Be $false
+            }
+        }
+    }
     Context 'Exit code robocopy' {
         It 'considera non bloccanti tutti e soli i codici da 0 a 7' {
             foreach ($exitCode in (0..7)) {
@@ -200,15 +251,15 @@ Describe 'WinBreak - test unitari non distruttivi' {
             $work = Join-Path $TestDrive 'cleanup-safe-work'
             New-Item -ItemType Directory -Path $work -Force | Out-Null
             $parameters = @{
-                Path = $work
+                Path                  = $work
                 ExpectedWorkDirectory = $work
-                OutputIso = (Join-Path $TestDrive 'cleanup-output\result.iso')
-                UserProfile = (Join-Path $TestDrive 'protected-profile')
-                SystemRoot = (Join-Path $TestDrive 'protected-system')
-                ProgramFiles = (Join-Path $TestDrive 'protected-program-files')
-                ProgramFilesX86 = (Join-Path $TestDrive 'protected-program-files-x86')
-                ProgramData = (Join-Path $TestDrive 'protected-program-data')
-                BackupRoot = (Join-Path $TestDrive 'protected-winbreak')
+                OutputIso             = (Join-Path $TestDrive 'cleanup-output\result.iso')
+                UserProfile           = (Join-Path $TestDrive 'protected-profile')
+                SystemRoot            = (Join-Path $TestDrive 'protected-system')
+                ProgramFiles          = (Join-Path $TestDrive 'protected-program-files')
+                ProgramFilesX86       = (Join-Path $TestDrive 'protected-program-files-x86')
+                ProgramData           = (Join-Path $TestDrive 'protected-program-data')
+                BackupRoot            = (Join-Path $TestDrive 'protected-winbreak')
             }
 
             (Test-WinBreakCleanupPath @parameters).IsSafe | Should -Be $true
@@ -216,13 +267,13 @@ Describe 'WinBreak - test unitari non distruttivi' {
 
         It 'rifiuta valori vuoti, un percorso diverso da quello atteso e la radice del volume' {
             $protected = @{
-                OutputIso = (Join-Path $TestDrive 'outside\result.iso')
-                UserProfile = (Join-Path $TestDrive 'profile-mismatch')
-                SystemRoot = (Join-Path $TestDrive 'system-mismatch')
-                ProgramFiles = (Join-Path $TestDrive 'program-files-mismatch')
+                OutputIso       = (Join-Path $TestDrive 'outside\result.iso')
+                UserProfile     = (Join-Path $TestDrive 'profile-mismatch')
+                SystemRoot      = (Join-Path $TestDrive 'system-mismatch')
+                ProgramFiles    = (Join-Path $TestDrive 'program-files-mismatch')
                 ProgramFilesX86 = (Join-Path $TestDrive 'program-files-x86-mismatch')
-                ProgramData = (Join-Path $TestDrive 'program-data-mismatch')
-                BackupRoot = (Join-Path $TestDrive 'backup-mismatch')
+                ProgramData     = (Join-Path $TestDrive 'program-data-mismatch')
+                BackupRoot      = (Join-Path $TestDrive 'backup-mismatch')
             }
             $work = Join-Path $TestDrive 'expected-work'
             $other = Join-Path $TestDrive 'other-work'
@@ -234,20 +285,20 @@ Describe 'WinBreak - test unitari non distruttivi' {
         }
 
         It 'rifiuta il profilo utente e le directory di sistema protette' {
-            $profile = Join-Path $TestDrive 'protected-user-profile'
+            $profile_ = Join-Path $TestDrive 'protected-user-profile'
             $systemRoot = Join-Path $TestDrive 'protected-windows'
             $programFiles = Join-Path $TestDrive 'protected-pf'
             $programFilesX86 = Join-Path $TestDrive 'protected-pfx86'
             $programData = Join-Path $TestDrive 'protected-pd'
             $backupRoot = Join-Path $TestDrive 'protected-backup'
-            $protectedCandidates = @($profile, $systemRoot, $programFiles, $programFilesX86, $programData, $backupRoot)
+            $protectedCandidates = @($profile_, $systemRoot, $programFiles, $programFilesX86, $programData, $backupRoot)
 
             foreach ($candidate in $protectedCandidates) {
                 $result = Test-WinBreakCleanupPath `
                     -Path $candidate `
                     -ExpectedWorkDirectory $candidate `
                     -OutputIso (Join-Path $TestDrive 'outside-protected\result.iso') `
-                    -UserProfile $profile `
+                    -UserProfile $profile_ `
                     -SystemRoot $systemRoot `
                     -ProgramFiles $programFiles `
                     -ProgramFilesX86 $programFilesX86 `
@@ -285,10 +336,10 @@ Describe 'WinBreak - test unitari non distruttivi' {
             $uefi = Join-Path $work 'efi\microsoft\boot\efisys_noprompt.bin'
 
             $actual = @(New-WinBreakOscdimgArguments `
-                -WorkDirectory $work `
-                -OutputIso $output `
-                -BiosBootFile $bios `
-                -UefiBootFile $uefi)
+                    -WorkDirectory $work `
+                    -OutputIso $output `
+                    -BiosBootFile $bios `
+                    -UefiBootFile $uefi)
 
             $actual.Count | Should -Be 7
             $actual[0] | Should -Be '-m'
@@ -324,25 +375,55 @@ Describe 'WinBreak - test unitari non distruttivi' {
             Mock -CommandName Write-WinBreakLog -MockWith { }
         }
 
-        It 'non monta né interroga immagini disco' {
-            Mock -CommandName Get-DiskImage -MockWith { throw 'Get-DiskImage non deve essere chiamato in DryRun.' }
-            Mock -CommandName Mount-DiskImage -MockWith { throw 'Mount-DiskImage non deve essere chiamato in DryRun.' }
+        It 'non monta né interroga immagini disco e non inventa una lettera in DryRun' {
+            Mock -CommandName Get-DiskImage -MockWith {
+                throw 'Get-DiskImage non deve essere chiamato in DryRun.'
+            }
 
-            $result = Mount-WinBreakIso -IsoPath 'C:\Fake\Win11.iso' -DryRun
+            Mock -CommandName Mount-DiskImage -MockWith {
+                throw 'Mount-DiskImage non deve essere chiamato in DryRun.'
+            }
+
+            Mock -CommandName Get-Volume -MockWith {
+                throw 'Get-Volume non deve essere chiamato in DryRun.'
+            }
+
+            $result = Mount-WinBreakIso `
+                -IsoPath 'C:\Fake\Win11.iso' `
+                -DryRun
 
             $result.DryRun | Should -Be $true
-            Assert-MockCalled -CommandName Get-DiskImage -Times 0 -Exactly -Scope It
-            Assert-MockCalled -CommandName Mount-DiskImage -Times 0 -Exactly -Scope It
+            ($null -eq $result.Root) | Should -Be $true
+            ($null -eq $result.DriveLetter) | Should -Be $true
+            ($null -eq $result.DiskImage) | Should -Be $true
+
+            Assert-MockCalled `
+                -CommandName Get-DiskImage `
+                -Times 0 `
+                -Exactly `
+                -Scope It
+
+            Assert-MockCalled `
+                -CommandName Mount-DiskImage `
+                -Times 0 `
+                -Exactly `
+                -Scope It
+
+            Assert-MockCalled `
+                -CommandName Get-Volume `
+                -Times 0 `
+                -Exactly `
+                -Scope It
         }
 
         It 'non smonta né interroga una immagine disco' {
             Mock -CommandName Get-DiskImage -MockWith { throw 'Get-DiskImage non deve essere chiamato in DryRun.' }
             Mock -CommandName Dismount-DiskImage -MockWith { throw 'Dismount-DiskImage non deve essere chiamato in DryRun.' }
             $mountInfo = [pscustomobject]@{
-                ImagePath = 'C:\Fake\Win11.iso'
+                ImagePath         = 'C:\Fake\Win11.iso'
                 MountedByWinBreak = $true
-                Dismounted = $false
-                DryRun = $false
+                Dismounted        = $false
+                DryRun            = $false
             }
 
             Dismount-WinBreakIso -MountInfo $mountInfo -DryRun
@@ -374,19 +455,90 @@ Describe 'WinBreak - test unitari non distruttivi' {
             Test-Path -LiteralPath $work | Should -Be $false
             Assert-MockCalled -CommandName New-Item -Times 0 -Exactly -Scope It
         }
+        It 'non richiede una SourceRoot reale e non costruisce gli argomenti operativi in DryRun' {
+            Mock -CommandName New-WinBreakRobocopyArguments -MockWith {
+                throw 'Gli argomenti operativi non devono essere costruiti in DryRun.'
+            }
 
-        It 'non esegue robocopy e non crea la destinazione' {
-            Mock -CommandName Invoke-WinBreakNativeCommand -MockWith { throw 'robocopy non deve essere eseguito in DryRun.' }
-            $source = Join-Path $TestDrive 'dryrun-source'
+            Mock -CommandName Invoke-WinBreakNativeCommand -MockWith {
+                throw 'Robocopy non deve essere eseguito in DryRun.'
+            }
+
             $destination = Join-Path $TestDrive 'dryrun-destination'
 
-            $result = Copy-WinBreakMedia -SourceRoot $source -WorkDirectory $destination -DryRun
+            $result = Copy-WinBreakMedia `
+                -SourceRoot $null `
+                -WorkDirectory $destination `
+                -DryRun
 
+            $result.Success | Should -Be $true
             $result.Planned | Should -Be $true
-            Test-Path -LiteralPath $destination | Should -Be $false
-            Assert-MockCalled -CommandName Invoke-WinBreakNativeCommand -Times 0 -Exactly -Scope It
+            ($null -eq $result.ExitCode) | Should -Be $true
+
+            Test-Path `
+                -LiteralPath $destination `
+                -PathType Container |
+            Should -Be $false
+
+            Assert-MockCalled `
+                -CommandName New-WinBreakRobocopyArguments `
+                -Times 0 `
+                -Exactly `
+                -Scope It
+
+            Assert-MockCalled `
+                -CommandName Invoke-WinBreakNativeCommand `
+                -Times 0 `
+                -Exactly `
+                -Scope It
+
+            Assert-MockCalled `
+                -CommandName Write-WinBreakLog `
+                -Times 1 `
+                -Exactly `
+                -Scope It `
+                -ParameterFilter {
+                $Level -eq 'INFO' -and
+                -not [string]::IsNullOrWhiteSpace($Message) -and
+                $Message.Contains('robocopy.exe') -and
+                $Message.Contains('<RADICE-ISO-MONTATA>')
+            }
         }
 
+        It 'rifiuta una SourceRoot nulla fuori dal DryRun' {
+            Mock -CommandName New-WinBreakRobocopyArguments -MockWith {
+                throw 'Gli argomenti non devono essere costruiti senza SourceRoot.'
+            }
+
+            Mock -CommandName Invoke-WinBreakNativeCommand -MockWith {
+                throw 'Robocopy non deve essere eseguito senza SourceRoot.'
+            }
+
+            $destination = Join-Path $TestDrive 'real-run-destination'
+
+            {
+                Copy-WinBreakMedia `
+                    -SourceRoot $null `
+                    -WorkDirectory $destination
+            } | Should -Throw
+
+            Test-Path `
+                -LiteralPath $destination `
+                -PathType Container |
+            Should -Be $false
+
+            Assert-MockCalled `
+                -CommandName New-WinBreakRobocopyArguments `
+                -Times 0 `
+                -Exactly `
+                -Scope It
+
+            Assert-MockCalled `
+                -CommandName Invoke-WinBreakNativeCommand `
+                -Times 0 `
+                -Exactly `
+                -Scope It
+        }
         It 'non esegue oscdimg, non cerca il tool e non apre Explorer' {
             Mock -CommandName Invoke-WinBreakNativeCommand -MockWith { throw 'oscdimg non deve essere eseguito in DryRun.' }
             Mock -CommandName Find-WinBreakOscdimg -MockWith { throw 'oscdimg non deve essere cercato in DryRun.' }
