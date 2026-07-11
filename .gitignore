@@ -1,0 +1,18 @@
+# WinBreak runtime data
+logs/
+backup/
+
+# Generated images and release archives
+*.iso
+WinBreak-*.zip
+
+# Operating systems
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.tmp
