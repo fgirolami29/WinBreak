@@ -12,7 +12,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 Set-Variable -Name WinBreakName -Value 'WinBreak' -Option Constant -Scope Script
-Set-Variable -Name WinBreakVersion -Value '0.1.1' -Option Constant -Scope Script
+Set-Variable -Name WinBreakVersion -Value '0.1.2' -Option Constant -Scope Script
 Set-Variable -Name WinBreakDescription -Value 'Windows 11 Requirements Patcher' -Option Constant -Scope Script
 Set-Variable -Name WinBreakAuthor -Value 'Federico Girolami / CodeCorn Technology' -Option Constant -Scope Script
 Set-Variable -Name WinBreakIsoNamePattern -Value '(?i)^win(?:dows)?[\s._-]*11.*\.iso$' -Option Constant -Scope Script
@@ -2332,18 +2332,36 @@ function Start-WinBreakUpgrade {
 
     Write-Host 'VERRÀ APERTO IL NORMALE INSTALLER GRAFICO DI WINDOWS 11.' -ForegroundColor Cyan
     Write-Host ('WINBREAK NON ELIMINERÀ {0} DURANTE LʼAGGIORNAMENTO.' -f $work) -ForegroundColor Yellow
-    Write-WinBreakLog -Message 'Il setup verrà avviato senza argomenti.' -Level INFO
+    Write-WinBreakLog -Message 'Il setup verrà aperto tramite la shell desktop di Windows senza argomenti.' -Level INFO
 
     if ($DryRun) {
-        Write-WinBreakLog -Message ('[DRYRUN] Start-Process -FilePath "{0}" -WorkingDirectory "{1}"' -f $setupPath, $work) -Level INFO
+        Write-WinBreakLog -Message ('[DRYRUN] Shell.Application.ShellExecute("{0}", "", "{1}", "open", 1)' -f $setupPath, $work) -Level INFO
         return $true
     }
     if (-not (Invoke-WinBreakCountdown -Seconds 10 -CancelKey A)) {
         return $false
     }
 
-    Start-Process -FilePath $setupPath -WorkingDirectory $work | Out-Null
-    Write-WinBreakLog -Message 'Installer grafico avviato. WinBreak non attenderà la fine dellʼaggiornamento.' -Level SUCCESS
+    $shellApplication = $null
+    try {
+        $shellApplication = New-Object -ComObject Shell.Application
+        $shellApplication.ShellExecute($setupPath, '', $work, 'open', 1)
+    }
+    catch {
+        throw ('Impossibile avviare setup.exe tramite Windows Explorer: {0}' -f $_.Exception.Message)
+    }
+    finally {
+        if ($null -ne $shellApplication) {
+            try {
+                [void][Runtime.InteropServices.Marshal]::FinalReleaseComObject($shellApplication)
+            }
+            catch {
+                # Il rilascio esplicito del COM non deve rendere fallito un avvio già richiesto.
+            }
+        }
+    }
+
+    Write-WinBreakLog -Message 'Richiesta di avvio dellʼinstaller inviata alla shell desktop. WinBreak non attenderà la fine dellʼaggiornamento.' -Level SUCCESS
     Write-WinBreakLog -Message ('Dopo lʼaggiornamento eliminare manualmente, quando sicuro: {0}' -f $work) -Level WARN
     return $true
 }

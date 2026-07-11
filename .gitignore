@@ -16,3 +16,6 @@ Desktop.ini
 .idea/
 *.swp
 *.tmp
+
+# Release staging
+dist/

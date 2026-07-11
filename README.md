@@ -3,7 +3,7 @@
 <div style="display: flex; flex-direction: row">
 <p align="left" style="width: 70%">
         <a href="https://github.com/fgirolami29/WinBreak">
-            <img alt="WinBreak" src="https://img.shields.io/badge/WinBreak-0.1.0-0078D4?style=for-the-badge&logo=windows11&logoColor=white" />
+            <img alt="WinBreak" src="https://img.shields.io/badge/WinBreak-0.1.2-0078D4?style=for-the-badge&logo=windows11&logoColor=white" />
         </a>
         <a href="https://github.com/fgirolami29/WinBreak/releases/latest">
             <img alt="Latest release" src="https://img.shields.io/github/v/release/fgirolami29/WinBreak?style=for-the-badge&logo=github&logoColor=white">
@@ -61,6 +61,8 @@ Lo script individua e convalida una ISO, mostra le edizioni disponibili, configu
 
 WinBreak non modifica `install.wim`, `install.esd` o `install.swm`, non usa DISM per alterare immagini e non avvia `setup.exe` con parametri nascosti o non documentati.
 
+Quando viene scelta l'opzione di aggiornamento, WinBreak delega l'apertura di `setup.exe` alla shell desktop di Windows. Il controllo iniziale di compatibilità non viene quindi avviato direttamente dal processo Administrator di WinBreak; Windows Setup richiederà autonomamente l'elevazione quando necessaria.
+
 ## Avvertenze importanti
 
 - Usare WinBreak soltanto dopo avere eseguito un backup completo dei dati importanti.
@@ -88,7 +90,7 @@ WinBreak non richiede un installer e può essere eseguito da qualsiasi directory
 ### Metodo consigliato: GitHub Release
 
 1. Aprire la sezione [**Releases**](https://github.com/fgirolami29/WinBreak/releases/latest) del repository.
-2. Scaricare `WinBreak-0.1.0.zip` dalla release più recente.
+2. Scaricare `WinBreak-0.1.2.zip` dalla release più recente.
 3. Fare clic destro sul file ZIP e scegliere **Estrai tutto**.
 4. Estrarre l'archivio in una directory locale.
 
@@ -114,12 +116,12 @@ C:\WinBreak\
 |-- Start-WinBreak.cmd
 |-- Start-WinBreak-DryRun.cmd
 |-- README.md
-|-- CHANGELOG.md
-`-- tests\
-    `-- WinBreak.Tests.ps1
+`-- CHANGELOG.md
 ```
 
 Non eseguire WinBreak direttamente dall'interno del file ZIP: estrarre sempre tutti i file prima dell'avvio.
+
+Il pacchetto ufficiale viene creato da una allowlist e non contiene `.gitignore`, `.DS_Store`, `__MACOSX`, test o altri file di sviluppo.
 
 ### Download della branch `main`
 
