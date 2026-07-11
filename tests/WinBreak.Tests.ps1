@@ -34,7 +34,28 @@ Describe 'WinBreak - test unitari non distruttivi' {
     BeforeEach {
         $script:WinBreakLogPath = $null
     }
+    Context 'Directory runtime portabile' {
+        It 'colloca log e backup accanto a WinBreak.ps1' {
+            $expectedRoot = [IO.Path]::GetFullPath($projectRoot)
 
+            $script:WinBreakRoot |
+                Should -Be $expectedRoot
+
+            $script:WinBreakLogRoot |
+                Should -Be (Join-Path $expectedRoot 'logs')
+
+            $script:WinBreakBackupRoot |
+                Should -Be (Join-Path $expectedRoot 'backup')
+        }
+
+        It 'non contiene più percorsi runtime hardcoded in C:\WinBreak' {
+            $script:WinBreakLogRoot |
+                Should -Not -Be 'C:\WinBreak\logs'
+
+            $script:WinBreakBackupRoot |
+                Should -Not -Be 'C:\WinBreak\backup'
+        }
+    }
     Context 'Nomi ISO' {
         It 'accetta i nomi Windows 11 previsti senza distinguere maiuscole e minuscole' {
             $validNames = @(

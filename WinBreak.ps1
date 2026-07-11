@@ -17,9 +17,10 @@ Set-Variable -Name WinBreakDescription -Value 'Windows 11 Requirements Patcher' 
 Set-Variable -Name WinBreakAuthor -Value 'Federico Girolami / CodeCorn Technology' -Option Constant -Scope Script
 Set-Variable -Name WinBreakIsoNamePattern -Value '(?i)^win(?:dows)?[\s._-]*11.*\.iso$' -Option Constant -Scope Script
 
+$script:WinBreakRoot = [IO.Path]::GetFullPath($PSScriptRoot)
 $script:WinBreakLogPath = $null
-$script:WinBreakLogRoot = 'C:\WinBreak\logs'
-$script:WinBreakBackupRoot = 'C:\WinBreak\backup'
+$script:WinBreakLogRoot = Join-Path -Path $script:WinBreakRoot -ChildPath 'logs'
+$script:WinBreakBackupRoot = Join-Path -Path $script:WinBreakRoot -ChildPath 'backup'
 $script:WinBreakCleanupFailed = $false
 
 function Write-WinBreakLog {

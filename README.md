@@ -1,8 +1,59 @@
 # WinBreak
 
-**Windows 11 Requirements Patcher**  
-Versione **0.1.0**  
-Federico Girolami / CodeCorn Technology
+<div style="display: flex; flex-direction: row">
+<p align="left" style="width: 70%">
+        <a href="https://github.com/fgirolami29/WinBreak">
+            <img alt="WinBreak" src="https://img.shields.io/badge/WinBreak-0.1.0-0078D4?style=for-the-badge&logo=windows11&logoColor=white" />
+        </a>
+        <a href="https://github.com/fgirolami29/WinBreak/releases/latest">
+            <img alt="Latest release" src="https://img.shields.io/github/v/release/fgirolami29/WinBreak?style=for-the-badge&logo=github&logoColor=white">
+        </a>
+        <a href="https://github.com/fgirolami29/WinBreak/releases">
+            <img alt="Release downloads" src="https://img.shields.io/github/downloads/fgirolami29/WinBreak/total?style=for-the-badge&logo=github&logoColor=white">
+        </a>
+        <a href="https://github.com/fgirolami29/WinBreak/commits/main">
+            <img alt="Last commit" src="https://img.shields.io/github/last-commit/fgirolami29/WinBreak?style=for-the-badge&logo=github&logoColor=white" />
+        </a>
+        <a href="https://github.com/fgirolami29/WinBreak/stargazers">
+            <img alt="GitHub stars" src="https://img.shields.io/github/stars/fgirolami29/WinBreak?style=for-the-badge&logo=github&logoColor=white" />
+        </a>
+        <a href="https://github.com/fgirolami29/WinBreak/network/members">
+            <img alt="GitHub forks" src="https://img.shields.io/github/forks/fgirolami29/WinBreak?style=for-the-badge&logo=github&logoColor=white" />
+        </a>
+        <a href="https://github.com/fgirolami29/WinBreak/issues">
+            <img alt="GitHub issues" src="https://img.shields.io/github/issues/fgirolami29/WinBreak?style=for-the-badge&logo=github&logoColor=white" />
+        </a>
+        <a href="https://github.com/fgirolami29">
+            <img alt="fgirolami29" src="https://img.shields.io/badge/Author-Federico_Girolami-181717?style=for-the-badge&logo=github&logoColor=white" />
+        </a>
+        <a href="https://github.com/CodeCornTech">
+            <img alt="CodeCorn Technology" src="https://img.shields.io/badge/CodeCorn-Technology-C1A269?style=for-the-badge&logo=coffeescript&logoColor=white" />
+        </a>
+        <a href="https://github.com/PytorchiaOrg">
+            <img alt="PyTorchia Legion" src="https://img.shields.io/badge/PyTorchia-Legion-%2300BFFF?style=for-the-badge&logo=docker&logoColor=white" />
+        </a>
+    </p>
+    <div style="width: 30%;display:flex;flex-direction:column;justify-content:center;align-items:end;">
+        <img alt="CodeCornTechnology™" src="https://i.postimg.cc/TP3ttFM8/CODECORN-trasp-white-ORI.png" width="250px" />
+    </div>
+</div>
+
+**Windows 11 Requirements Patcher**
+
+<div style="display: flex; flex-direction: row">
+    <p align="left" style="width: 70%">
+        <a href="https://github.com/fgirolami29/WinBreak">
+            <img alt="PowerShell 5.1" src="https://img.shields.io/badge/PowerShell-5.1-5391FE?style=for-the-badge&logo=powershell&logoColor=white" />
+        </a>
+        <a href="https://www.microsoft.com/windows/windows-11">
+            <img alt="Windows 11" src="https://img.shields.io/badge/Windows-11-0078D4?style=for-the-badge&logo=windows11&logoColor=white" />
+        </a>
+        <a href="https://github.com/pester/Pester">
+            <img alt="Tested with Pester" src="https://img.shields.io/badge/Tested_with-Pester-5C2D91?style=for-the-badge&logo=powershell&logoColor=white" />
+        </a>
+    </p>
+
+</div>
 
 WinBreak è uno script interattivo per Windows 11 e PowerShell 5.1 che prepara una copia locale di un supporto di installazione Windows 11 destinata a sistemi con requisiti hardware non supportati.
 
@@ -30,50 +81,101 @@ WinBreak non modifica `install.wim`, `install.esd` o `install.swm`, non usa DISM
 
 WinBreak non installa moduli, non scarica software e non apre automaticamente un browser. Pester e PSScriptAnalyzer sono facoltativi e vengono usati per lo sviluppo soltanto se già presenti.
 
-## File e directory
+## Download e installazione
 
-Collocare almeno `WinBreak.ps1` in `C:\WinBreak`. Il progetto contiene anche:
+WinBreak non richiede un installer e può essere eseguito da qualsiasi directory locale.
+
+### Metodo consigliato: GitHub Release
+
+1. Aprire la sezione [**Releases**](https://github.com/fgirolami29/WinBreak/releases/latest) del repository.
+2. Scaricare `WinBreak-0.1.0.zip` dalla release più recente.
+3. Fare clic destro sul file ZIP e scegliere **Estrai tutto**.
+4. Estrarre l'archivio in una directory locale.
+
+Lo ZIP ufficiale contiene già una directory radice denominata `WinBreak`. Per ottenere il percorso consigliato:
+
+```text
+C:\WinBreak
+```
+
+impostare come destinazione dell'estrazione:
+
+```text
+C:\
+```
+
+È possibile estrarre WinBreak anche altrove, per esempio nella cartella Download dell'utente. Non è necessario rinominare o spostare la directory per eseguire il programma.
+
+La struttura risultante sarà:
 
 ```text
 C:\WinBreak\
 |-- WinBreak.ps1
+|-- Start-WinBreak.cmd
+|-- Start-WinBreak-DryRun.cmd
 |-- README.md
 |-- CHANGELOG.md
 `-- tests\
     `-- WinBreak.Tests.ps1
 ```
 
-Durante l'esecuzione vengono usati questi percorsi predefiniti:
+Non eseguire WinBreak direttamente dall'interno del file ZIP: estrarre sempre tutti i file prima dell'avvio.
 
-| Percorso | Uso |
-| --- | --- |
-| `C:\WinBreak\logs\WinBreak-YYYYMMDD-HHMMSS.log` | Log di console e diagnostica |
-| `C:\WinBreak\backup\` | Backup JSON dello stato Registry e backup verificato di `appraiserres.dll` |
-| `C:\Win11ISO` | Copia di lavoro del supporto |
-| `C:\Windows11Modded.iso` | ISO modificata prodotta da `oscdimg.exe` |
+### Download della branch `main`
 
-Il backup JSON registra lo stato precedente dei valori Registry, ma WinBreak non esegue un ripristino automatico.
+Il pulsante GitHub **Code → Download ZIP** scarica invece un archivio dello stato corrente di sviluppo.
 
-## Avvio
+Dopo l'estrazione la directory si chiamerà normalmente:
 
-Aprire **Windows PowerShell come Administrator**, quindi eseguire esattamente:
-
-```powershell
-Set-ExecutionPolicy -Scope Process Bypass -Force
-& "C:\WinBreak\WinBreak.ps1"
+```text
+WinBreak-main
 ```
 
-La modifica dell'Execution Policy vale soltanto per il processo PowerShell corrente. Se la console non è elevata, WinBreak mostra `RUNNAMI COME ADMINISTRATOR!` e termina senza tentare l'auto-elevazione.
+WinBreak può essere eseguito anche da questa directory, senza rinominarla o spostarla in `C:\WinBreak`.
 
-### DryRun
+Per un utilizzo normale è comunque consigliato scaricare una versione stabile dalla sezione **Releases**.
 
-Per controllare il flusso senza applicare le operazioni di sistema:
+## Avvio facile
 
-```powershell
-& "C:\WinBreak\WinBreak.ps1" -DryRun
+Aprire la directory estratta, fare clic destro su:
+
+```text
+Start-WinBreak.cmd
 ```
 
-In modalità DryRun WinBreak descrive le azioni previste, ma non:
+e scegliere:
+
+```text
+Esegui come amministratore
+```
+
+Il launcher avvia Windows PowerShell 5.1 con un'Execution Policy temporanea valida soltanto per quel processo.
+
+WinBreak controlla comunque di essere stato avviato con privilegi Administrator. Se la console non è elevata, mostra:
+
+```text
+RUNNAMI COME ADMINISTRATOR!
+```
+
+e termina senza tentare l'auto-elevazione.
+
+## DryRun facile
+
+Per simulare il flusso senza eseguire le operazioni di sistema, fare clic destro su:
+
+```text
+Start-WinBreak-DryRun.cmd
+```
+
+e scegliere:
+
+```text
+Esegui come amministratore
+```
+
+Anche la modalità DryRun richiede una console Administrator.
+
+In DryRun WinBreak descrive le operazioni previste, ma non:
 
 - scrive nel Registry;
 - monta o smonta immagini;
@@ -82,21 +184,83 @@ In modalità DryRun WinBreak descrive le azioni previste, ma non:
 - avvia `setup.exe`;
 - esegue `oscdimg.exe`.
 
-Anche DryRun deve essere avviato da una console elevata e crea il log per documentare la simulazione. Poiché non monta la ISO, DryRun non dichiara verificati struttura, metadati o edizioni: indica chiaramente tali controlli come non eseguiti.
+Poiché la ISO non viene montata, struttura, metadati ed edizioni vengono indicati come controlli non eseguiti e non come verifiche superate.
+
+## Avvio manuale da PowerShell
+
+In alternativa ai launcher, aprire **Windows PowerShell 5.1 come Administrator** e spostarsi nella directory in cui è stato estratto WinBreak.
+
+Esempio con la directory consigliata:
+
+```powershell
+Set-Location "C:\WinBreak"
+Set-ExecutionPolicy -Scope Process Bypass -Force
+& ".\WinBreak.ps1"
+```
+
+La modifica dell'Execution Policy vale soltanto per la sessione PowerShell corrente e non modifica permanentemente la configurazione del sistema.
+
+### DryRun manuale
+
+Anche prima del DryRun deve essere impostata l'Execution Policy per il processo corrente:
+
+```powershell
+Set-Location "C:\WinBreak"
+Set-ExecutionPolicy -Scope Process Bypass -Force
+& ".\WinBreak.ps1" -DryRun
+```
+
+Se è stato usato **Code → Download ZIP**, specificare invece il percorso effettivo della directory estratta, per esempio:
+
+```powershell
+Set-Location "$env:USERPROFILE\Downloads\WinBreak-main"
+Set-ExecutionPolicy -Scope Process Bypass -Force
+& ".\WinBreak.ps1" -DryRun
+```
+
+## File generati
+
+Log e backup vengono creati all'interno della directory che contiene `WinBreak.ps1`, indipendentemente dalla directory corrente della console:
+
+```text
+<directory WinBreak>\
+|-- logs\
+|   `-- WinBreak-YYYYMMDD-HHMMSS.log
+`-- backup\
+    |-- registry-YYYYMMDD-HHMMSS-xxxxxxxx.json
+    `-- YYYYMMDD-HHMMSS-xxx\
+        `-- appraiserres.dll
+```
+
+I percorsi operativi predefiniti restano:
+
+| Percorso                       | Uso                                                       |
+| ------------------------------ | --------------------------------------------------------- |
+| `<directory WinBreak>\logs\`   | Log di console e diagnostica                              |
+| `<directory WinBreak>\backup\` | Backup Registry e backup verificato di `appraiserres.dll` |
+| `C:\Win11ISO`                  | Copia di lavoro del supporto Windows                      |
+| `C:\Windows11Modded.iso`       | ISO prodotta con `oscdimg.exe`                            |
+
+Il backup JSON registra lo stato precedente dei valori Registry, ma WinBreak non esegue un ripristino automatico.
 
 ## Parametri
 
-| Parametro | Descrizione | Predefinito |
-| --- | --- | --- |
-| `-DryRun` | Simula le operazioni con effetti sul sistema. | Disattivato |
-| `-KeepMounted` | Non smonta una ISO montata da WinBreak. | Disattivato |
-| `-WorkDirectory` | Imposta la directory della copia di lavoro. | `C:\Win11ISO` |
-| `-OutputIso` | Imposta il percorso della ISO generata. | `C:\Windows11Modded.iso` |
+| Parametro        | Descrizione                                   | Predefinito              |
+| ---------------- | --------------------------------------------- | ------------------------ |
+| `-DryRun`        | Simula le operazioni con effetti sul sistema. | Disattivato              |
+| `-KeepMounted`   | Non smonta una ISO montata da WinBreak.       | Disattivato              |
+| `-WorkDirectory` | Directory della copia di lavoro.              | `C:\Win11ISO`            |
+| `-OutputIso`     | Percorso della ISO generata.                  | `C:\Windows11Modded.iso` |
 
-Esempio con percorsi personalizzati:
+Esempio manuale con percorsi personalizzati:
 
 ```powershell
-& "C:\WinBreak\WinBreak.ps1" -WorkDirectory "D:\WinBreak Work\Win11ISO" -OutputIso "D:\ISO\Windows11Modded.iso"
+Set-Location "C:\WinBreak"
+Set-ExecutionPolicy -Scope Process Bypass -Force
+
+& ".\WinBreak.ps1" `
+    -WorkDirectory "D:\WinBreak Work\Win11ISO" `
+    -OutputIso "D:\ISO\Windows11Modded.iso"
 ```
 
 ## Modalità interattiva
@@ -154,7 +318,7 @@ Con la directory di lavoro predefinita, WinBreak opera sul file:
 C:\Win11ISO\sources\appraiserres.dll
 ```
 
-Prima della rimozione ne registra dimensione e SHA256 e ne salva una copia verificata sotto `C:\WinBreak\backup\<timestamp>\`. Se il file è già assente, viene mostrato un avviso e serve una conferma esplicita per continuare. Il file `appraiser.dll` non viene rimosso. Con `-WorkDirectory`, il percorso sorgente del file segue la directory personalizzata.
+Prima della rimozione ne registra dimensione e SHA256 e ne salva una copia verificata sotto `<directory WinBreak>\backup\<timestamp>\`. Se il file è già assente, viene mostrato un avviso e serve una conferma esplicita per continuare. Il file `appraiser.dll` non viene rimosso. Con `-WorkDirectory`, il percorso sorgente del file segue la directory personalizzata.
 
 ## Opzioni finali
 
@@ -198,7 +362,7 @@ Ogni operazione importante viene riportata in console e nel log con livello `INF
 - conserva la directory di lavoro;
 - indica il percorso del log e termina con exit code non zero.
 
-Se l'esecuzione viene interrotta, controllare il log più recente in `C:\WinBreak\logs` e verificare manualmente lo stato del mount e della directory di lavoro prima di riprovare.
+Se l'esecuzione viene interrotta, controllare il log più recente nella directory `logs` accanto a `WinBreak.ps1` e verificare manualmente lo stato del mount e della directory di lavoro prima di riprovare.
 
 ## Test non distruttivi
 
